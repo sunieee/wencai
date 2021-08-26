@@ -11,13 +11,12 @@ import wencai as wc
 #### 初始化
 
 ```python
-wc.set_variable(cn_col=True, execute_path='/Users/allen/Downloads/chromedriver')
+wc.set_variable(cn_col=True)
 ```
 
 **参数说明：**
 
 - cn_col：True返回中文字段，False返回英文字段，默认false
-- execute_path：chrome_driver路径，None表示chrome_driver在根路径，默认None
 
 #### wc.get_scrape_report(回测一下)
 

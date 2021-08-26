@@ -3,3 +3,5 @@ requests>=2.14.2
 beautifulsoup4>=4.5.1
 #selenium==3.141
 PyExecJS>=1.5.1
+selenium
+click
