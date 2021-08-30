@@ -18,12 +18,10 @@ def get_version():
 setup(
     name='wencai',
     version=get_version(),
-    author='allen yang',
-    author_email='allenyzx@163.com',
-    maintainer='sunie',
-    maintainer_email='1287495769@qq.com',
+    author='sunie',
+    author_email='1287495769@qq.com',
     url='https://upload.pypi.org/sunie/',
-    package_data={'wencai': ['js/*']},
+    package_data={'wencai': ['js/*', 'sh/*']},
     description='this is a wencai crawler to get message',
     packages=find_packages(),
     install_requires=install_requires,
@@ -41,6 +39,7 @@ setup(
     entry_points="""
         [console_scripts]
         wc.select=wencai.select.cli:cli
+        wc.util=wencai.util.cli:cli
     """,
     zip_safe=False,
     include_package_data=True,
