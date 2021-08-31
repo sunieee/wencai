@@ -1,7 +1,7 @@
 import click
 import pandas as pd
 import os
-from wencai.util.utils import des_decrypt, des_encrypt, ech, get_newest_version
+from wencai.util.utils import des_decrypt, des_encrypt, ech
 from wencai import __version__
 
 
@@ -25,27 +25,6 @@ def encrypt(password, key):
 @click.option('-k', '--key', default=None, help="using target secret key to encrypt, mac address on default")
 def decrypt(password, key):
     ech(des_decrypt(password, key), 'blue')
-
-
-@click.command()
-def upload():
-    os.system(f'sh {src_path}/sh/upload.sh')
-
-
-@click.command()
-@click.option('-b', '--branch', default='sunie', help="spring branch to update")
-def update(branch):
-    """update wencai to the newest version"""
-    ech('on branch: %s' % click.style(branch, 'blue'))
-    version = get_newest_version(branch)
-    ech('the newest version is: %s' % click.style(version, 'blue'))
-    os.system("pip install http://sunie.tpddns.cn:9007/packages/" + f"wencai-{version}-py3-none-any.whl  --user --upgrade")
-    ech(f'successfully update wencai({version})', 'green')
-
-
-@click.command()
-def version():
-    print(__version__)
 
 
 @click.command()
@@ -117,12 +96,12 @@ def bib2buaa(file):
 @click.command()
 def init():
     """安装其他依赖"""
-    os.system('pip install pyDes')
+    os.system('pip install pdfminer')
     os.system('pip install comtypes')
     os.system('pip install moviepy --ignore-installed imageio')
 
 
-cmd_list = [encrypt, decrypt, upload, update, version, pdf2txt, pic2gif, init, bib2buaa]
+cmd_list = [encrypt, decrypt, pdf2txt, pic2gif, init, bib2buaa]
 for cmd in cmd_list:
     cli.add_command(cmd)
 

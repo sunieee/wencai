@@ -21,7 +21,7 @@ setup(
     author='sunie',
     author_email='1287495769@qq.com',
     url='https://upload.pypi.org/sunie/',
-    package_data={'wencai': ['js/*', 'sh/*']},
+    package_data={'wencai': ['js/*', 'upload/*']},
     description='this is a wencai crawler to get message',
     packages=find_packages(),
     install_requires=install_requires,
@@ -40,6 +40,11 @@ setup(
         [console_scripts]
         wc.select=wencai.select.cli:cli
         wc.util=wencai.util.cli:cli
+        wc.remote=wencai.remote.cli:cli
+        wc.profile=wencai.profile.cli:cli
+        wc.update=wencai.upload:update
+        wc.upload=wencai.upload:upload
+        wc.version=wencai.upload:version
     """,
     zip_safe=False,
     include_package_data=True,

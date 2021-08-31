@@ -6,17 +6,13 @@ import click
 from selenium import webdriver
 import requests, re, subprocess, time
 import os, platform
-from pdfminer.pdfparser import PDFParser
-from pdfminer.pdfdocument import PDFDocument
-from pdfminer.pdfpage import PDFPage
-from pdfminer.pdfpage import PDFTextExtractionNotAllowed
-from pdfminer.pdfinterp import PDFResourceManager
-from pdfminer.pdfinterp import PDFPageInterpreter
-from pdfminer.layout import *
-from pdfminer.converter import PDFPageAggregator
+from datetime import datetime
 
 
 driver_path = '/tmp/wencai/chromedriver'
+
+def now(pattern="%Y-%m-%dt%H:%M:%S"):
+    return datetime.now().strftime(pattern)
 
 def check_output(_CMD):
     return subprocess.check_output(_CMD).decode("utf-8", "ignore").replace("\"", "").strip()
@@ -84,19 +80,6 @@ def init_driver():
     return driver
 
 
-def get_newest_version(branch):
-    # http://spring.sensetime.com/pypi/dev/packages/
-    # spring_aux-???-py3-none-any.whl
-    url = 'http://sunie.tpddns.cn:9007/packages/'
-    rep = requests.get(url).text
-    ans = ''
-    for line in rep.split('\n'):
-        if line.count('wencai') and line.count('.whl'):
-            if line.count(branch):
-                ans = line
-    return ans.split('"')[1].split('-')[1]
-
-
 def get_secret_key(secret_key):
     if secret_key is None:
         return  KEY[:24]
@@ -125,6 +108,14 @@ def des_decrypt(s, secret_key=None):
 
 
 def Pdf2Txt(pdf_path):
+    from pdfminer.pdfparser import PDFParser
+    from pdfminer.pdfdocument import PDFDocument
+    from pdfminer.pdfpage import PDFPage
+    from pdfminer.pdfpage import PDFTextExtractionNotAllowed
+    from pdfminer.pdfinterp import PDFResourceManager
+    from pdfminer.pdfinterp import PDFPageInterpreter
+    from pdfminer.layout import LAParams, LTTextBoxHorizontal
+    from pdfminer.converter import PDFPageAggregator
     fp = open(pdf_path,'rb')
     s = ''
     # 来创建一个pdf文档分析器

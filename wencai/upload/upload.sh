@@ -9,4 +9,4 @@ twine upload dist/* -r private --verbose
 
 # pip install http://sunie.tpddns.cn:9007/packages/wencai-0.0.1.sunie.2021_08_25t10_26-py3-none-any.whl
 conda activate
-wc.util update
+wc.update
