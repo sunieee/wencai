@@ -1,6 +1,7 @@
 import click
 import os, requests
-from wencai.util.utils import ech
+import wencai
+from wencai.util.utils import ech, get_system
 from wencai import __version__
 
 
@@ -31,7 +32,10 @@ def update():
     ech('on branch: %s' % click.style(branch, 'blue'))
     version = get_newest_version(branch)
     ech('the newest version is: %s' % click.style(version, 'blue'))
-    os.system("pip install http://sunie.tpddns.cn:9007/packages/" + f"wencai-{version}-py3-none-any.whl  --user --upgrade")
+    cmd = "pip install http://sunie.tpddns.cn:9007/packages/" + f"wencai-{version}-py3-none-any.whl  --user"
+    if get_system()!= 'Windows':
+        cmd += ' --upgrade'
+    os.system(cmd)
     ech(f'successfully update wencai({version})', 'green')
 
 

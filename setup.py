@@ -12,8 +12,10 @@ else:
 
 def get_version():
     import datetime
-    version_tmp = __version__ + '.sunie.' +  datetime.datetime.now().strftime("%Y-%m-%dt%H:%M")
+    version_tmp = __version__ + '.sunie.' + \
+        datetime.datetime.now().strftime("%Y-%m-%dt%H:%M")
     return version_tmp
+
 
 setup(
     name='wencai',
@@ -21,7 +23,7 @@ setup(
     author='sunie',
     author_email='1287495769@qq.com',
     url='https://upload.pypi.org/sunie/',
-    package_data={'wencai': ['js/*', 'upload/*']},
+    package_data={'wencai': ['js/*', 'upload/*', 'util/*']},
     description='this is a wencai crawler to get message',
     packages=find_packages(),
     install_requires=install_requires,

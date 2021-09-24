@@ -15,13 +15,26 @@ def cli():
     pass
 
 
-@click.command()
+@click.command(context_settings=dict(
+    ignore_unknown_options=True,
+))
 @click.argument('args', nargs=-1)
-def python(args):
+@click.option('-o', '--output', default=tmp_path, help="output folder")
+def python(args, output):
     cmd = sys.argv
     cmd = cmd[cmd.index('python')+1:]
-    out_prof = tmp_path + now() + '.prof'
-    out_svg = tmp_path.replace('.prof', '.svg')
+    if '-o' in cmd:
+        i = cmd.index('-o')
+        if len(cmd) > i+2:
+            cmd = cmd[:i] + cmd[i+2:]
+        else:
+            cmd = cmd[:i]
+    if output[0] != '/':
+        output = os.path.join(os.getcwd(), output)
+    os.makedirs(output, exist_ok=True)
+
+    out_prof = os.path.join(output, now() + '.prof').replace('\\', '/')
+    out_svg = out_prof.replace('.prof', '.svg')
     launch_cmd = ['python', '-m', 'cProfile', '-o', out_prof] + cmd
     ech('launching %s' % click.style(' '.join(launch_cmd), 'blue'))
     os.system(' '.join(launch_cmd))

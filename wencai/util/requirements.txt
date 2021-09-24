@@ -1,0 +1,9 @@
+pillow
+fitz
+PyMuPDF
+python-docx
+pyDes
+pdfminer
+comtypes
+moviepy --ignore-installed imageio
+pytesseract

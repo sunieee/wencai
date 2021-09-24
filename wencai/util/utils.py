@@ -1,21 +1,47 @@
 import binascii
-from pyDes import triple_des, CBC, PAD_PKCS5
+import sys
+from pyDes import des, triple_des, CBC, PAD_PKCS5
 import os
 import requests
 import click
 from selenium import webdriver
-import requests, re, subprocess, time
-import os, platform
+import requests
+import re
+import subprocess
+import time
+import os
+import platform
 from datetime import datetime
+import pickle
 
 
-driver_path = '/tmp/wencai/chromedriver'
+def check_output(_CMD):
+    return subprocess.check_output(_CMD).decode("utf-8", "ignore").replace("\"", "").strip()
+
+
+def get_system():
+    system = platform.system()
+    if system == 'Linux':
+        if check_output(['cat', '/etc/issue']).count('Ubuntu'):
+            return 'Ubuntu'
+        return 'CentOS'
+    return system
+
+
+def get_tmp_path():
+    tmp_path = '/tmp'
+    if get_system() == 'Windows':
+        # C:/Users/Sunie/AppData/Local/Temp
+        tmp_path = os.environ['TEMP'].replace(r'\\', '/').replace('\\', '/')
+    return tmp_path + '/wencai'
+
+
+driver_path = f'{get_tmp_path()}/chromedriver'
+
 
 def now(pattern="%Y-%m-%dt%H:%M:%S"):
     return datetime.now().strftime(pattern)
 
-def check_output(_CMD):
-    return subprocess.check_output(_CMD).decode("utf-8", "ignore").replace("\"", "").strip()
 
 if os.path.exists('/sys/class/net/eth0/address'):
     KEY = check_output(['cat', '/sys/class/net/eth0/address']) * 2
@@ -27,15 +53,18 @@ def ech(s, color=None):
     click.echo(click.style(s, fg=color))
 
 
-def init_option():
+def init_option(disableGPU=True, imagesDisabled=True, headless=True):
     options = webdriver.ChromeOptions()
-    # options.add_argument('--disable-gpu')
+    if disableGPU:
+        options.add_argument('--disable-gpu')
     # 隐藏滚动条, 应对一些特殊页面
     options.add_argument('--hide-scrollbars')
     # 不加载图片, 提升速度
-    options.add_argument('blink-settings=imagesEnabled=false')
+    if imagesDisabled:
+        options.add_argument('blink-settings=imagesEnabled=false')
     # 浏览器不提供可视化页面. linux下如果系统不支持可视化不加这条会启动失败
-    options.add_argument('--headless')
+    if headless:
+        options.add_argument('--headless')
     # 以最高权限运行
     options.add_argument('--no-sandbox')
     # 禁用JavaScript
@@ -55,7 +84,8 @@ def download_webdriver():
     if len(re.compile(out).findall(rep)) > 0:
         result = re.compile(out).findall(rep)[0]
     else:
-        result = re.compile(version + r'\..*?/').findall(rep)[0]  # 匹配文件夹（版本号）和时间，这里一定要最小匹配
+        # 匹配文件夹（版本号）和时间，这里一定要最小匹配
+        result = re.compile(version + r'\..*?/').findall(rep)[0]
 
     if platform.system() == "Linux":
         download_url = url + result + 'chromedriver_linux64.zip'
@@ -66,7 +96,8 @@ def download_webdriver():
     with open(f"{driver_path}.zip", 'wb') as zip_file:                # 保存文件到脚本所在目录
         zip_file.write(file.content)
     time.sleep(1)
-    subprocess.Popen(['unzip', '-o', f'{driver_path}.zip', '-d', os.path.dirname(driver_path)])
+    subprocess.Popen(
+        ['unzip', '-o', f'{driver_path}.zip', '-d', os.path.dirname(driver_path)])
     time.sleep(1)
     os.system(f'chmod 777 {driver_path}')
     ech(f"successfully saved at {driver_path}", 'green')
@@ -76,13 +107,14 @@ def init_driver():
     if not os.path.exists(driver_path):
         download_webdriver()
     # os.environ['PATH'] = os.environ['PATH'] + ':/tmp/remote'
-    driver = webdriver.Chrome(options=init_option(), executable_path=driver_path)
+    driver = webdriver.Chrome(options=init_option(),
+                              executable_path=driver_path)
     return driver
 
 
 def get_secret_key(secret_key):
     if secret_key is None:
-        return  KEY[:24]
+        return KEY[:24]
     else:
         while len(secret_key) < 24:
             secret_key = secret_key * 2
@@ -107,49 +139,10 @@ def des_decrypt(s, secret_key=None):
     return de.decode(encoding='utf-8')
 
 
-def Pdf2Txt(pdf_path):
-    from pdfminer.pdfparser import PDFParser
-    from pdfminer.pdfdocument import PDFDocument
-    from pdfminer.pdfpage import PDFPage
-    from pdfminer.pdfpage import PDFTextExtractionNotAllowed
-    from pdfminer.pdfinterp import PDFResourceManager
-    from pdfminer.pdfinterp import PDFPageInterpreter
-    from pdfminer.layout import LAParams, LTTextBoxHorizontal
-    from pdfminer.converter import PDFPageAggregator
-    fp = open(pdf_path,'rb')
-    s = ''
-    # 来创建一个pdf文档分析器
-    parser = PDFParser(fp)
-    # 创建一个PDF文档对象存储文档结构
-    document = PDFDocument(parser)
-    # 检查文件是否允许文本提取
-    if not document.is_extractable:
-        raise PDFTextExtractionNotAllowed
-    else:
-        # 创建一个PDF资源管理器对象来存储共赏资源
-        rsrcmgr = PDFResourceManager()
-        # 设定参数进行分析
-        laparams = LAParams()
-        # 创建一个PDF设备对象
-        # device=PDFDevice(rsrcmgr)
-        device = PDFPageAggregator(rsrcmgr, laparams=laparams)
-        # 创建一个PDF解释器对象
-        interpreter = PDFPageInterpreter(rsrcmgr, device)
-        # 处理每一页
-        for page in PDFPage.create_pages(document):
-            interpreter.process_page(page)
-            # 接受该页面的LTPage对象
-            layout = device.get_result()
-            for x in layout:
-                if(isinstance(x, LTTextBoxHorizontal)):
-                    s += x.get_text()
-    return s
-
-
 def dropun(X):
     for x in X.columns:
-        if x[:7]=='Unnamed':
-              X=X.drop(columns=[x])
+        if x[:7] == 'Unnamed':
+            X = X.drop(columns=[x])
     return X
 
 
@@ -214,8 +207,8 @@ def is_number(s):
     except (TypeError, ValueError):
         pass
     return False
- 
- 
+
+
 def find_continuous_num(astr, c):
     num = ''
     try:
@@ -228,8 +221,8 @@ def find_continuous_num(astr, c):
         pass
     if num != '':
         return int(num)
- 
- 
+
+
 def comp2filename(file1, file2):
     smaller_length = min(len(file1), len(file2))
     continuous_num = ''
@@ -258,20 +251,20 @@ def comp2filename(file1, file2):
                 return True
             else:
                 return False
- 
- 
+
+
 def sort_insert(lst):
     for i in range(1, len(lst)):
         x = lst[i]
         j = i
         while j > 0 and lst[j-1] > x:
-        # while j > 0 and comp2filename(x, lst[j-1]):
+            # while j > 0 and comp2filename(x, lst[j-1]):
             lst[j] = lst[j-1]
             j -= 1
         lst[j] = x
     return lst
- 
- 
+
+
 def sort_filename(lst):
     for i in range(1, len(lst)):
         x = lst[i]
@@ -284,5 +277,73 @@ def sort_filename(lst):
     return lst
 
 
+def init_OCR():
+    import pytesseract
+
+    # your path may be different
+    pytesseract.pytesseract.tesseract_cmd = f'{get_tmp_path()}/tesseract.exe'
+
+
+def verification_OCR(pic_path, count=None):
+    '''识别图片中的code，count表示验证码位数，默认任意长
+    apt update
+    apt install -y python3-pil  tesseract-ocr
+    pip install pytesseract tesseract
+    '''
+    import pytesseract
+    from PIL import Image, ImageEnhance
+    img = Image.open(pic_path)
+
+    times = 0
+    code = ''
+    while True:
+        times += 1
+        ech(times)
+        code = pytesseract.image_to_string(img).strip().replace(' ', '')
+        if len(code) and count is None or len(code) == count:
+            break
+
+    ech("输出的验证码为：%s" % click.style(code, 'blue'))
+    return code
+
+
+def save_obj(obj, name):
+    with open(name, 'wb') as f:
+        pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+
+
+def load_obj(name):
+    with open(name, 'rb') as f:
+        return pickle.load(f)
+
+
+def getPureDomainCookies(cookies):
+    domain2cookie = {}  # 做一个域到cookie的映射
+    for cookie in cookies:
+        domain = cookie['domain']
+        if domain in domain2cookie:
+            domain2cookie[domain].append(cookie)
+        else:
+            domain2cookie[domain] = []
+    maxCnt = 0
+    ansDomain = ''
+    for domain in domain2cookie.keys():
+        cnt = len(domain2cookie[domain])
+        if cnt > maxCnt:
+            maxCnt = cnt
+            ansDomain = domain
+    ech('your pure domain cookies are:', 'yellow')
+    ech(domain2cookie)
+    ansCookies = domain2cookie[ansDomain]
+    return ansCookies
+
+
+def timewrap(func, **kwargs):
+    s = datetime.datetime.now()
+    func(**kwargs)
+    print('时间=', (datetime.datetime.now() - s).seconds)
+
+
 if __name__ == "__main__":
-    print(get_newest_version('sunie'))
+    # print(get_newest_version('sunie'))
+    print(verification_OCR('/tmp/remote/test.png', 6))
