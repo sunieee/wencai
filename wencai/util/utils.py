@@ -284,29 +284,6 @@ def init_OCR():
     pytesseract.pytesseract.tesseract_cmd = f'{get_tmp_path()}/tesseract.exe'
 
 
-def verification_OCR(pic_path, count=None):
-    '''识别图片中的code，count表示验证码位数，默认任意长
-    apt update
-    apt install -y python3-pil  tesseract-ocr
-    pip install pytesseract tesseract
-    '''
-    import pytesseract
-    from PIL import Image, ImageEnhance
-    img = Image.open(pic_path)
-
-    times = 0
-    code = ''
-    while True:
-        times += 1
-        ech(times)
-        code = pytesseract.image_to_string(img).strip().replace(' ', '')
-        if len(code) and count is None or len(code) == count:
-            break
-
-    ech("输出的验证码为：%s" % click.style(code, 'blue'))
-    return code
-
-
 def save_obj(obj, name):
     with open(name, 'wb') as f:
         pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
@@ -344,6 +321,30 @@ def timewrap(func, **kwargs):
     print('时间=', (datetime.datetime.now() - s).seconds)
 
 
+def verification_OCR(pic_path, count=None):
+    '''识别图片中的code，count表示验证码位数，默认任意长
+    apt update
+    apt install -y python3-pil  tesseract-ocr
+    pip install pytesseract tesseract
+    '''
+    import pytesseract
+    from PIL import Image, ImageEnhance
+    img = Image.open(pic_path)
+
+    times = 0
+    code = ''
+    while True:
+        times += 1
+        ech(times)
+        code = pytesseract.image_to_string(img).strip().replace(' ', '')
+        if len(code) and count is None or len(code) == count:
+            break
+
+    ech("输出的验证码为：%s" % click.style(code, 'blue'))
+    return code
+
+
 if __name__ == "__main__":
     # print(get_newest_version('sunie'))
-    print(verification_OCR('/tmp/remote/test.png', 6))
+    # print(verification_OCR('/tmp/remote/test.png', 6))
+    print(verification_OCR('/tmp/wencai/tmp.png'))

@@ -6,3 +6,5 @@ PyExecJS>=1.5.1
 selenium
 click
 flameprof
+pyDes
+captcha
