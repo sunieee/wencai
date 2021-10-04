@@ -47,6 +47,7 @@ setup(
         wc.update=wencai.upload:update
         wc.upload=wencai.upload:upload
         wc.version=wencai.upload:version
+        wc.torch=wencai.torch.cli:cli
     """,
     zip_safe=False,
     include_package_data=True,
